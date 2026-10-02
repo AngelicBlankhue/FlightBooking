@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - FlightBooking</title>
+
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKr3kRw_2w3BNfR5dSpsLpsHWg5igeqJw",
+            authDomain: "flightbooking-6fcdd.firebaseapp.com",
+            projectId: "flightbooking-6fcdd",
+            storageBucket: "flightbooking-6fcdd.firebasestorage.app",
+            messagingSenderId: "481452769984",
+            appId: "1:481452769984:web:45c32d3c9d3b6a92dba325",
+            measurementId: "G-J929JY5NQY"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(238,245,255,.55), rgba(180,212,255,.55)),
+                url("vietnam-airlines.png") no-repeat center center fixed;
+            background-size: cover;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .login-box {
+            width: 400px;
+            max-width: 100%;
+            background: rgba(238,245,255,.96);
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 15px 35px rgba(0,0,0,.25);
+            backdrop-filter: blur(6px);
+        }
+
+        h1 {
+            text-align: center;
+            color: #176B87;
+            margin: 0 0 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #176B87;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+            color: #176B87;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #86B6F6;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            background: white;
+        }
+
+        input:focus { border-color: #176B87; }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 13px;
+            border: none;
+            border-radius: 8px;
+            background: #176B87;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover { background: #0f4c63; }
+
+        #thongbao {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .register-link, .home-link {
+            text-align: center;
+            margin-top: 18px;
+        }
+
+        a {
+            color: #176B87;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover { text-decoration: underline; }
+
+        .password-row { position: relative; }
+
+        .show-password {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: auto;
+            margin: 0;
+            padding: 5px;
+            background: transparent;
+            color: #176B87;
+            font-size: 13px;
+        }
+
+        .show-password:hover { background: transparent; }
+    </style>
+</head>
+
+<body>
+    <div class="login-box">
+        <h1>✈️ Đăng nhập</h1>
+
+        <div class="subtitle">
+            Chào mừng bạn quay lại FlightBooking
+        </div>
+
+        <form id="formDangNhap">
+            <label for="email">Email</label>
+            <input
+                type="email"
+                id="email"
+                placeholder="example@gmail.com"
+                autocomplete="email"
+                required>
+
+            <label for="matKhau">Mật khẩu</label>
+
+            <div class="password-row">
+                <input
+                    type="password"
+                    id="matKhau"
+                    placeholder="Nhập mật khẩu"
+                    autocomplete="current-password"
+                    required>
+
+                <button type="button" class="show-password" id="btnHienMatKhau">👁️</button>
+            </div>
+
+            <button type="submit">🔐 Đăng nhập</button>
+        </form>
+
+        <div id="thongbao"></div>
+
+        <div class="register-link">
+            Chưa có tài khoản?
+            <a href="dangky.html">Đăng ký ngay</a>
+        </div>
+
+    </div>
+
+    <script>
+        const formDangNhap = document.getElementById("formDangNhap");
+        const thongBao = document.getElementById("thongbao");
+        const matKhauInput = document.getElementById("matKhau");
+        const btnHienMatKhau = document.getElementById("btnHienMatKhau");
+
+        btnHienMatKhau.addEventListener("click", function () {
+            if (matKhauInput.type === "password") {
+                matKhauInput.type = "text";
+                btnHienMatKhau.innerText = "🙈";
+            } else {
+                matKhauInput.type = "password";
+                btnHienMatKhau.innerText = "👁️";
+            }
+        });
+
+        formDangNhap.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const email = document.getElementById("email").value.trim();
+            const matKhau = matKhauInput.value;
+
+            if (!email || !matKhau) {
+                thongBao.innerHTML = "❌ Vui lòng nhập đầy đủ email và mật khẩu.";
+                thongBao.style.color = "red";
+                return;
+            }
+
+            try {
+                thongBao.innerHTML = "⏳ Đang đăng nhập...";
+                thongBao.style.color = "#176B87";
+
+                await firebase.auth().signInWithEmailAndPassword(email, matKhau);
+
+                thongBao.innerHTML =
+                    "✅ Đăng nhập thành công! Đang chuyển trang...";
+                thongBao.style.color = "green";
+
+                setTimeout(function () {
+                    window.location.replace("index.html");
+                }, 800);
+
+            } catch (error) {
+                console.error("❌ Lỗi đăng nhập:", error);
+
+                let message = "❌ Đăng nhập thất bại.";
+
+                if (
+                    error.code === "auth/invalid-credential" ||
+                    error.code === "auth/wrong-password" ||
+                    error.code === "auth/user-not-found"
+                ) {
+                    message = "❌ Email hoặc mật khẩu không đúng.";
+                } else if (error.code === "auth/invalid-email") {
+                    message = "❌ Email không hợp lệ.";
+                } else if (error.code === "auth/too-many-requests") {
+                    message = "❌ Bạn thử quá nhiều lần. Vui lòng thử lại sau.";
+                } else if (error.code === "auth/network-request-failed") {
+                    message = "❌ Không kết nối được Firebase. Hãy kiểm tra Internet.";
+                } else if (error.code === "auth/operation-not-allowed") {
+                    message = "❌ Firebase chưa bật đăng nhập bằng Email/Password.";
+                } else if (error.code === "auth/api-key-not-valid") {
+                    message = "❌ Firebase API Key không hợp lệ.";
+                } else if (error.message) {
+                    message = "❌ " + error.message;
+                }
+
+                thongBao.innerHTML = message;
+                thongBao.style.color = "red";
+            }
+        });
+    </script>
+</body>
+</html>

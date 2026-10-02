@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>About - Flight Booking</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+
+            /* ẢNH NỀN PHỦ TOÀN BỘ TRANG */
+            background:
+                linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+                url("vietnam-airlines.png") no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        /* HEADER */
+        .header {
+            background-color: #0b5c6b;
+            color: white;
+            padding: 12px 20px;
+            font-weight: bold;
+        }
+
+        /* TIÊU ĐỀ */
+        .hero {
+            text-align: center;
+            color: white;
+            padding: 60px 20px 30px;
+        }
+
+        .hero h1 {
+            font-size: 32px;
+        }
+
+        /* CONTAINER */
+        .container {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 80px;
+        }
+
+        /* BOX THÔNG TIN */
+        .about-card {
+            background: rgba(180, 212, 255, 0.92);
+            backdrop-filter: blur(6px);
+            padding: 30px;
+            border-radius: 16px;
+            width: 380px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+        }
+
+        .about-card h3 {
+            color: #176B87;
+            margin-bottom: 12px;
+        }
+
+        .about-card p {
+            font-size: 15px;
+            margin: 8px 0;
+        }
+
+        .about-card a {
+            color: #176B87;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .about-card hr {
+            margin: 18px 0;
+            border: none;
+            height: 1px;
+            background: #86B6F6;
+        }
+
+        .about-card .btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 18px;
+            background: #176B87;
+            color: white;
+            border-radius: 8px;
+        }
+
+        .about-card .btn:hover {
+            background: #0f4c63;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        Flight Booking
+    </div>
+
+    <div class="hero">
+        <h1>Giới thiệu tác giả</h1>
+    </div>
+
+    <div class="container">
+        <div class="about-card">
+            <h3>👤 Thông tin tác giả</h3>
+
+            <p><b>Họ và tên:</b> Nguyễn Nhật Thăng</p>
+            <p><b>Số điện thoại:</b>
+                <a href="tel:0396223377">0396 223 377</a>
+            </p>
+
+            <hr>
+
+            <p>Website đặt vé máy bay này được xây dựng với mong muốn mang đến cho người dùng một trải nghiệm đặt vé
+                nhanh chóng, đơn giản và tiện lợi.<br>
+
+                Ý tưởng của website xuất phát từ những chuyến đi đầu tiên và niềm yêu thích với lĩnh vực hàng không. Tác
+                giả mong muốn tạo ra một nền tảng giúp mọi người dễ dàng tìm kiếm, so sánh giá vé và lựa chọn chuyến bay
+                phù hợp chỉ trong vài bước đơn giản.<br>
+
+                Dù là một dự án học tập, website vẫn được thiết kế theo phong cách hiện đại, trực quan, lấy cảm hứng từ
+                các trang đặt vé máy bay chuyên nghiệp, nhằm mang lại cảm giác thân thiện và dễ sử dụng cho người dùng.<br>
+            </p>
+
+            <a href="index.html" class="btn">← Quay về Trang chủ</a>
+        </div>
+    </div>
+
+</body>
+
+</html>

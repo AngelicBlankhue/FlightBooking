@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch sử đặt vé - FlightBooking</title>
+
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBKr3kRw_2w3BNfR5dSpsLpsHWg5igeqJw",
+            authDomain: "flightbooking-6fcdd.firebaseapp.com",
+            projectId: "flightbooking-6fcdd",
+            storageBucket: "flightbooking-6fcdd.firebasestorage.app",
+            messagingSenderId: "481452769984",
+            appId: "1:481452769984:web:45c32d3c9d3b6a92dba325",
+            measurementId: "G-J929JY5NQY"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+    </script>
+
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #EEF5FF;
+            color: #176B87;
+        }
+
+        header {
+            background: #176B87;
+            color: white;
+            padding: 15px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        header .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        header a,
+        header button {
+            color: white;
+            background: transparent;
+            border: none;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+            margin-left: 12px;
+            font-size: 15px;
+        }
+
+        .container {
+            width: min(1000px, calc(100% - 30px));
+            margin: 35px auto;
+        }
+
+        .heading {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .heading h1 {
+            margin-bottom: 8px;
+        }
+
+        .heading p {
+            color: #176B87;
+        }
+
+        #loading,
+        #empty,
+        #error {
+            text-align: center;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.10);
+        }
+
+        #empty,
+        #error {
+            display: none;
+        }
+
+        .ticket {
+            background: white;
+            border-left: 6px solid #86B6F6;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 20px rgba(0,0,0,.10);
+        }
+
+        .ticket-top {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #dbe9ff;
+            padding-bottom: 14px;
+            margin-bottom: 14px;
+        }
+
+        .airline {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .code {
+            font-size: 13px;
+            color: #558;
+            margin-top: 5px;
+        }
+
+        .status {
+            background: #dff7e8;
+            color: #16804a;
+            padding: 7px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .route {
+            font-size: 19px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .details {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 25px;
+        }
+
+        .detail {
+            color: #176B87;
+        }
+
+        .price {
+            margin-top: 18px;
+            padding-top: 15px;
+            border-top: 1px dashed #86B6F6;
+            text-align: right;
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .back {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 11px 18px;
+            background: #176B87;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .cancel-area {
+            margin-top: 14px;
+            text-align: right;
+        }
+
+        .cancel-btn {
+            border: none;
+            background: #e74c3c;
+            color: white;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .cancel-btn:hover {
+            background: #c0392b;
+        }
+
+        .cancel-btn:disabled {
+            opacity: .65;
+            cursor: not-allowed;
+        }
+
+        .cancel-expired {
+            color: #777;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .cancelled {
+            color: #c0392b;
+        }
+
+        .back:hover {
+            background: #86B6F6;
+        }
+
+        @media (max-width: 600px) {
+            .details {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                justify-content: center;
+                text-align: center;
+            }
+
+            header a,
+            header button {
+                margin: 5px;
+            }
+        }
+    
+        .booking-status[data-status="Đã hủy"], .booking-status[data-status="Đã huỷ"],
+        .booking-status.cancelled { background:#fde2e2 !important; color:#d93025 !important; border:1px solid #f3b5b1 !important; }
+
+        .booking-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-weight: 700;
+        }
+
+        .booking-status.status-cancelled {
+            background: #fde2e2 !important;
+            color: #d93025 !important;
+            border: 1px solid #f3b5b1 !important;
+        }
+
+    
+        .status.status-cancelled {
+            background: #fde2e2 !important;
+            color: #d93025 !important;
+            border: 1px solid #f3b5b1 !important;
+        }
+
+        .status.status-booked {
+            background: #dff7e8 !important;
+            color: #16804a !important;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="title">✈️ FlightBooking</div>
+
+        <div>
+            <a href="index.html">Trang chủ</a>
+            <button onclick="dangXuat()">🚪 Đăng xuất</button>
+        </div>
+    </header>
+
+    <main class="container">
+
+        <div class="heading">
+            <h1>🎫 Lịch sử đặt vé</h1>
+            <p id="taiKhoan"></p>
+        </div>
+
+        <div id="loading">
+            ⏳ Đang tải lịch sử đặt vé...
+        </div>
+
+        <div id="error"></div>
+
+        <div id="empty">
+            <div style="font-size:48px;">📭</div>
+            <h2>Bạn chưa có lịch sử đặt vé</h2>
+            <p>Những vé bạn đặt bằng tài khoản này sẽ xuất hiện ở đây.</p>
+            <a class="back" href="index.html">✈️ Đặt vé ngay</a>
+        </div>
+
+        <div id="danhSach"></div>
+
+        <div style="text-align:center;">
+            <a class="back" href="index.html">← Về trang chủ</a>
+        </div>
+
+    </main>
+
+    <script>
+        const loading = document.getElementById("loading");
+        const empty = document.getElementById("empty");
+        const errorBox = document.getElementById("error");
+        const danhSach = document.getElementById("danhSach");
+        const taiKhoan = document.getElementById("taiKhoan");
+
+        firebase.auth().onAuthStateChanged(async function(user) {
+
+            if (!user) {
+                window.location.replace("dangnhap.html");
+                return;
+            }
+
+            taiKhoan.innerText =
+                "Tài khoản: " + (user.email || "");
+
+            try {
+
+                // Chỉ truy vấn các đơn có userId đúng bằng UID hiện tại.
+                const snapshot = await db
+                    .collection("datVe")
+                    .where("userId", "==", user.uid)
+                    .get();
+
+                loading.style.display = "none";
+
+                if (snapshot.empty) {
+                    empty.style.display = "block";
+                    return;
+                }
+
+                const orders = [];
+
+                snapshot.forEach(function(doc) {
+                    orders.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                // Sắp xếp mới nhất trước ở phía trình duyệt,
+                // tránh phải tạo composite index Firestore.
+                orders.sort(function(a, b) {
+                    const timeA = a.createdAt && a.createdAt.toMillis
+                        ? a.createdAt.toMillis()
+                        : 0;
+
+                    const timeB = b.createdAt && b.createdAt.toMillis
+                        ? b.createdAt.toMillis()
+                        : 0;
+
+                    return timeB - timeA;
+                });
+
+                danhSach.innerHTML = orders.map(function(order) {
+
+                    const ngayDat =
+                        order.createdAt && order.createdAt.toDate
+                            ? order.createdAt.toDate().toLocaleString("vi-VN")
+                            : "Đang cập nhật";
+
+                    return `
+                        <div class="ticket">
+
+                            <div class="ticket-top">
+                                <div>
+                                    <div class="airline">
+                                        ✈️ ${escapeHtml(order.hangbay || "Chuyến bay")}
+                                    </div>
+
+                                    <div class="code">
+                                        Mã đặt vé: <b>${escapeHtml(order.maDatVe || order.id)}</b>
+                                    </div>
+                                </div>
+
+                                <div class="status ${String(order.trangThai || "Đã đặt").trim() === "Đã hủy" || String(order.trangThai || "Đã đặt").trim() === "Đã huỷ" ? "status-cancelled" : "status-booked"}">
+                                    ${escapeHtml(order.trangThai || "Đã đặt")}
+                                </div>
+                            </div>
+
+                            <div class="route">
+                                ${escapeHtml(order.diemdi || "")}
+                                → 
+                                ${escapeHtml(order.diemden || "")}
+                            </div>
+
+                            <div style="margin-bottom:15px;">
+                                🕐 Giờ bay:
+                                <b>${escapeHtml(order.giobay || "Chưa cập nhật")}</b>
+                            </div>
+
+                            <div class="details">
+                                <div class="detail">
+                                    👤 Người đặt:
+                                    <b>${escapeHtml(order.hoten || "")}</b>
+                                </div>
+
+                                <div class="detail">
+                                    👥 Số người:
+                                    <b>${Number(order.songuoi || 0)}</b>
+                                </div>
+
+                                <div class="detail">
+                                    📞 Số điện thoại:
+                                    <b>${escapeHtml(order.sdt || "")}</b>
+                                </div>
+
+                                <div class="detail">
+                                    📧 Email:
+                                    <b>${escapeHtml(order.email || "")}</b>
+                                </div>
+
+                                <div class="detail">
+                                    📅 Thời gian đặt:
+                                    <b>${escapeHtml(ngayDat)}</b>
+                                </div>
+                            </div>
+
+                            <div class="price">
+                                💰 Tổng tiền:
+                                ${Number(order.tongTien || 0).toLocaleString("vi-VN")}đ
+                            </div>
+
+                            <div class="cancel-area" id="cancel-${escapeHtml(order.id)}">
+                                ${renderCancelButton(order)}
+                            </div>
+
+                        </div>
+                    `;
+                }).join("");
+
+            } catch (error) {
+
+                console.error("Lỗi tải lịch sử:", error);
+
+                loading.style.display = "none";
+                errorBox.style.display = "block";
+
+                if (error.code === "permission-denied") {
+                    errorBox.innerHTML =
+                        "❌ Firebase đang chặn quyền đọc lịch sử. " +
+                        "Bạn cần cập nhật Firestore Security Rules.";
+                } else {
+                    errorBox.innerHTML =
+                        "❌ Không thể tải lịch sử đặt vé.<br><br>" +
+                        escapeHtml(error.message || "Lỗi không xác định.");
+                }
+            }
+        });
+
+
+        // ==============================
+        // KIỂM TRA THỜI HẠN HỦY: 3 NGÀY
+        // ==============================
+        function renderCancelButton(order) {
+
+            if ((order.trangThai || "") === "Đã hủy") {
+                return '<div class="cancel-expired cancelled">❌ Đã hủy vé</div>';
+            }
+
+            if (!order.createdAt || !order.createdAt.toDate) {
+                return '<div class="cancel-expired">⏳ Chưa xác định được thời gian đặt vé</div>';
+            }
+
+            const created = order.createdAt.toDate();
+            const deadline = new Date(created.getTime() + 3 * 24 * 60 * 60 * 1000);
+            const now = new Date();
+
+            if (now >= deadline) {
+                return '<div class="cancel-expired">🔒 Đã quá 3 ngày — không thể hủy vé</div>';
+            }
+
+            const remain = deadline.getTime() - now.getTime();
+            const hours = Math.max(1, Math.ceil(remain / (60 * 60 * 1000)));
+
+            return `
+                <button class="cancel-btn"
+                        onclick="huyDatVe('${escapeJs(order.id)}', '${escapeJs(order.maDatVe || order.id)}')">
+                    ❌ Hủy đặt vé
+                </button>
+                <div style="margin-top:6px; font-size:13px;">
+                    Có thể hủy trong ${hours} giờ tới
+                </div>
+            `;
+        }
+
+        function escapeJs(value) {
+            return String(value)
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, "\\n")
+                .replace(/\r/g, "\\r");
+        }
+
+        // ==============================
+        // HỦY ĐẶT VÉ
+        // ==============================
+        async function huyDatVe(orderId, maDatVe) {
+
+            const user = firebase.auth().currentUser;
+
+            if (!user) {
+                window.location.replace("dangnhap.html");
+                return;
+            }
+
+            const button = document.querySelector(
+                '#cancel-' + CSS.escape(orderId) + ' .cancel-btn'
+            );
+
+            if (button) {
+                button.disabled = true;
+                button.innerText = "⏳ Đang hủy...";
+            }
+
+            try {
+
+                const ref = db.collection("datVe").doc(orderId);
+                const doc = await ref.get();
+
+                if (!doc.exists) {
+                    throw new Error("Không tìm thấy đơn đặt vé.");
+                }
+
+                const order = doc.data();
+
+                // Kiểm tra chủ đơn ở phía client.
+                if (order.userId !== user.uid) {
+                    throw new Error("Bạn không có quyền hủy đơn này.");
+                }
+
+                if (order.trangThai === "Đã hủy") {
+                    throw new Error("Vé này đã được hủy trước đó.");
+                }
+
+                if (!order.createdAt || !order.createdAt.toDate) {
+                    throw new Error("Đơn chưa có thời gian đặt vé hợp lệ.");
+                }
+
+                // 3 ngày tính chính xác từ thời điểm đặt.
+                const deadline =
+                    order.createdAt.toDate().getTime() +
+                    3 * 24 * 60 * 60 * 1000;
+
+                if (Date.now() >= deadline) {
+                    throw new Error(
+                        "Đã quá 3 ngày kể từ lúc đặt vé. Vé này không thể hủy."
+                    );
+                }
+
+                const ok = confirm(
+                    "Bạn có chắc chắn muốn hủy vé " +
+                    maDatVe +
+                    "?\\n\\nSau khi hủy, bạn không thể khôi phục đơn này."
+                );
+
+                if (!ok) {
+                    if (button) {
+                        button.disabled = false;
+                        button.innerText = "❌ Hủy đặt vé";
+                    }
+                    return;
+                }
+
+                await ref.update({
+                    trangThai: "Đã hủy",
+                    cancelledAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+                alert("✅ Đã hủy đặt vé thành công!");
+
+                // Tải lại để cập nhật trạng thái trên giao diện.
+                window.location.reload();
+
+            } catch (error) {
+
+                console.error("Lỗi hủy vé:", error);
+
+                if (button) {
+                    button.disabled = false;
+                    button.innerText = "❌ Hủy đặt vé";
+                }
+
+                if (error.code === "permission-denied") {
+                    alert(
+                        "❌ Không thể hủy vé. Có thể vé đã quá 3 ngày " +
+                        "hoặc tài khoản này không phải chủ của đơn."
+                    );
+                } else {
+                    alert("❌ " + (error.message || "Không thể hủy vé."));
+                }
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        async function dangXuat() {
+            try {
+                await firebase.auth().signOut();
+                window.location.replace("dangnhap.html");
+            } catch (error) {
+                alert("❌ Không thể đăng xuất: " + error.message);
+            }
+        }
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết chuyến bay | Flight Booking</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        :root {
+            --bg: #eef5ff;
+            --card: #ffffff;
+            --primary: #176b87;
+            --accent: #1298e8;
+            --light: #b4d4ff;
+            --text: #183b4a;
+            --muted: #6d7f88;
+            --line: #e2e8ee;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+        }
+
+        .topbar {
+            height: 64px;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .brand {
+            font-size: 21px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .back-link {
+            border: 0;
+            background: transparent;
+            color: var(--primary);
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .page {
+            max-width: 1080px;
+            margin: 28px auto 50px;
+            padding: 0 18px;
+        }
+
+        .title {
+            margin-bottom: 18px;
+        }
+
+        .title h1 {
+            margin: 0 0 7px;
+            font-size: 26px;
+            color: #183b4a;
+        }
+
+        .title p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .flight-card {
+            background: var(--card);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(23, 93, 112, .12);
+            overflow: hidden;
+            border: 1px solid #e1ebf4;
+        }
+
+        .flight-head {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+        }
+
+        .route {
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .date {
+            color: var(--muted);
+            margin-top: 6px;
+        }
+
+        .flight-code {
+            color: var(--primary);
+            font-weight: 700;
+            font-size: 14px;
+            text-align: right;
+        }
+
+        .timeline {
+            padding: 26px 28px 24px;
+            display: grid;
+            grid-template-columns: 90px 28px 1fr;
+            gap: 0;
+            position: relative;
+        }
+
+        .time {
+            font-size: 21px;
+            font-weight: 700;
+            color: #153b4b;
+        }
+
+        .dot-col {
+            position: relative;
+            min-height: 130px;
+        }
+
+        .dot-col::before {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            left: 7px;
+            top: 7px;
+        }
+
+        .dot-col::after {
+            content: "";
+            position: absolute;
+            width: 2px;
+            background: #b9c7cf;
+            left: 12px;
+            top: 19px;
+            bottom: -5px;
+        }
+
+        .dot-col.last {
+            min-height: auto;
+        }
+
+        .dot-col.last::after {
+            display: none;
+        }
+
+        .place {
+            font-size: 16px;
+            font-weight: 700;
+            line-height: 1.45;
+        }
+
+        .airport {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .airline-row {
+            margin: 18px 0 0;
+            padding: 14px 16px;
+            background: #f5f9fd;
+            border-radius: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 18px;
+            color: #365765;
+        }
+
+        .airline-row strong {
+            color: var(--primary);
+        }
+
+        .section-title {
+            font-size: 20px;
+            margin: 26px 0 13px;
+        }
+
+        .fare-tabs {
+            display: flex;
+            background: #fff;
+            border-bottom: 2px solid #dfe8ee;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .fare-tab {
+            border: 0;
+            background: transparent;
+            padding: 14px 28px;
+            color: #71818a;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .fare-tab.active {
+            color: #087fc1;
+            border-bottom-color: #1298e8;
+        }
+
+        .fare-panel {
+            display: none;
+        }
+
+        .fare-panel.active {
+            display: block;
+        }
+
+        .fare-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+        }
+
+        .fare {
+            background: #fff;
+            border: 1px solid #dfe7ec;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 7px 20px rgba(23, 93, 112, .08);
+            display: flex;
+            flex-direction: column;
+            min-height: 360px;
+        }
+
+        .fare.featured {
+            border: 2px solid #7bcf18;
+            position: relative;
+        }
+
+        .fare-badge {
+            position: absolute;
+            top: 0;
+            left: 12px;
+            transform: translateY(-1px);
+            background: #e9f8ff;
+            color: #087fc1;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 0 0 5px 5px;
+            font-weight: 600;
+        }
+
+        .fare-top {
+            padding: 18px 18px 13px;
+        }
+
+        .fare-name {
+            font-weight: 700;
+            font-size: 14px;
+            color: #244c5b;
+            margin-bottom: 6px;
+        }
+
+        .fare-desc {
+            color: #77868d;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+
+        .price {
+            font-size: 20px;
+            font-weight: 700;
+            color: #263f49;
+            white-space: nowrap;
+        }
+
+        .price small {
+            font-size: 12px;
+            font-weight: 400;
+            color: #697981;
+        }
+
+        .benefits {
+            border-top: 1px solid #e6ebee;
+            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            flex: 1;
+        }
+
+        .benefit {
+            font-size: 13px;
+            line-height: 1.35;
+            padding: 8px 0;
+            border-bottom: 1px solid #edf0f2;
+        }
+
+        .benefit:last-child {
+            border-bottom: 0;
+        }
+
+        .benefit.ok::before {
+            content: "✓";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #14bd7a;
+            color: white;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .benefit.info::before {
+            content: "i";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #eef2f3;
+            color: #64757d;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .benefit.disabled {
+            color: #a4adb1;
+        }
+
+        .benefit.disabled::before {
+            content: "×";
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            color: #b7bec1;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .fare-bottom {
+            padding: 12px 14px;
+            border-top: 1px solid #e4eaed;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .learn-more {
+            border: 0;
+            padding: 0;
+            background: transparent;
+            color: #0088d1;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .learn-more:hover {
+            text-decoration: underline;
+        }
+
+        .choose-btn {
+            border: 0;
+            background: #1298e8;
+            color: white;
+            padding: 10px 28px;
+            border-radius: 22px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 135px;
+        }
+
+        .choose-btn:hover {
+            background: #0786cf;
+        }
+
+        .bottom-action {
+            margin-top: 18px;
+            text-align: right;
+        }
+
+        .continue-btn {
+            border: 0;
+            background: #1298e8;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 24px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 180px;
+        }
+
+        .continue-btn:hover {
+            background: #0786cf;
+        }
+
+
+        .fare-detail-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(22, 34, 40, .52);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 18px;
+        }
+
+        .fare-detail-modal.show {
+            display: flex;
+        }
+
+        .fare-detail-box {
+            width: min(620px, 100%);
+            max-height: 92vh;
+            background: #fff;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 18px 55px rgba(0, 0, 0, .25);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .fare-detail-header {
+            padding: 18px 22px;
+            border-bottom: 1px solid #e5eaed;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 15px;
+        }
+
+        .fare-detail-header h3 {
+            margin: 0;
+            font-size: 19px;
+            color: #183b4a;
+        }
+
+        .fare-detail-header p {
+            margin: 5px 0 0;
+            color: #697a82;
+            font-size: 13px;
+        }
+
+        .modal-close {
+            width: 34px;
+            height: 34px;
+            border: 0;
+            background: #f3f5f6;
+            border-radius: 50%;
+            font-size: 21px;
+            cursor: pointer;
+            color: #40535b;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: #e8edef;
+        }
+
+        .fare-detail-body {
+            overflow-y: auto;
+            padding: 0 24px;
+        }
+
+        .detail-section {
+            padding: 18px 0;
+            border-bottom: 1px solid #e6ebee;
+        }
+
+        .detail-section:last-child {
+            border-bottom: 0;
+        }
+
+        .detail-section h4 {
+            margin: 0 0 13px;
+            font-size: 16px;
+            color: #172f39;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 11px 0;
+            font-size: 14px;
+            line-height: 1.4;
+            color: #243941;
+        }
+
+        .detail-icon {
+            width: 22px;
+            text-align: center;
+            flex-shrink: 0;
+            font-size: 18px;
+        }
+
+        .detail-muted {
+            color: #89959a;
+        }
+
+        .detail-note {
+            margin: 3px 0 0 34px;
+            color: #77868d;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .detail-arrow {
+            margin-left: auto;
+            color: #687980;
+            font-size: 20px;
+        }
+
+        .modal-footer {
+            border-top: 1px solid #e1e7ea;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            background: #fff;
+        }
+
+        .modal-price {
+            color: #f15a24;
+            font-size: 19px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .modal-price small {
+            color: #697981;
+            font-size: 12px;
+            font-weight: 400;
+        }
+
+        .modal-choose {
+            border: 0;
+            background: #1298e8;
+            color: #fff;
+            padding: 13px 27px;
+            border-radius: 24px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            min-width: 160px;
+        }
+
+        .modal-choose:hover {
+            background: #0786cf;
+        }
+
+        .empty {
+            max-width: 600px;
+            margin: 80px auto;
+            text-align: center;
+            background: #fff;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, .08);
+        }
+
+        @media (max-width: 700px) {
+            .fare-detail-modal {
+                padding: 0;
+                align-items: flex-end;
+            }
+
+            .fare-detail-box {
+                width: 100%;
+                max-height: 94vh;
+                border-radius: 14px 14px 0 0;
+            }
+
+            .fare-detail-body {
+                padding: 0 16px;
+            }
+
+            .modal-footer {
+                padding: 11px 14px;
+            }
+
+            .modal-choose {
+                min-width: 145px;
+                padding: 12px 20px;
+            }
+
+            .fare-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .fare-tabs {
+                margin-left: -10px;
+                margin-right: -10px;
+            }
+
+            .topbar {
+                padding: 0 15px;
+            }
+
+            .page {
+                margin-top: 18px;
+                padding: 0 10px;
+            }
+
+            .flight-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .flight-code {
+                text-align: left;
+            }
+
+            .timeline {
+                padding: 22px 16px;
+                grid-template-columns: 72px 26px 1fr;
+            }
+
+            .route {
+                font-size: 20px;
+            }
+
+            .benefits {
+                grid-template-columns: 1fr;
+            }
+
+            .fare-top,
+            .fare-bottom {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .continue-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="topbar">
+        <div class="brand">Flight Booking</div>
+        <button class="back-link" onclick="quayLai()">← Quay lại danh sách chuyến bay</button>
+    </header>
+
+    <main class="page">
+
+        <div class="title">
+            <h1>Chi tiết chuyến bay</h1>
+            <p>Kiểm tra thông tin chuyến bay và giá vé trước khi tiếp tục đặt vé.</p>
+        </div>
+
+        <section class="flight-card">
+
+            <div class="flight-head">
+                <div>
+                    <div class="route">
+                        <span id="diemdi">---</span>
+                        <span> → </span>
+                        <span id="diemden">---</span>
+                    </div>
+                    <div class="date" id="ngaybay">Ngày khởi hành chưa cập nhật</div>
+                </div>
+
+                <div class="flight-code">
+                    <div id="hangbay">---</div>
+                    <div id="maChuyenBay">Chuyến bay</div>
+                </div>
+            </div>
+
+            <div class="timeline">
+
+                <div class="time" id="giobay">--:--</div>
+                <div class="dot-col"></div>
+                <div>
+                    <div class="place">Khởi hành</div>
+                    <div class="airport" id="sanbaydi">Sân bay khởi hành</div>
+                </div>
+
+                <div></div>
+                <div class="dot-col last"></div>
+                <div style="padding-top:45px;">
+                    <div class="place">Đến nơi</div>
+                    <div class="airport" id="sanbayden">Sân bay đến</div>
+                </div>
+
+                <div></div>
+                <div></div>
+                <div class="airline-row">
+                    <span><strong id="airlineText">---</strong></span>
+                    <span>Chuyến bay trực tiếp</span>
+                    <span>Hạng phổ thông</span>
+                </div>
+
+            </div>
+        </section>
+
+        <h2 class="section-title">Lựa chọn hạng vé</h2>
+
+        <div class="fare-tabs">
+            <button class="fare-tab active" id="tabPhoThong"
+                    onclick="doiHangVe('pho-thong')">
+                Phổ thông
+            </button>
+
+            <button class="fare-tab" id="tabDacBiet"
+                    onclick="doiHangVe('dac-biet')">
+                Phổ thông đặc biệt/Thương gia (Từ <span id="giaBatDauDacBiet">0đ</span>)
+            </button>
+        </div>
+
+        <!-- HẠNG PHỔ THÔNG -->
+        <section class="fare-panel active" id="panelPhoThong">
+            <div class="fare-grid">
+
+                <article class="fare">
+                    <div class="fare-top">
+                        <div class="fare-name">Phổ thông</div>
+                        <div class="fare-desc">Gói cơ bản</div>
+                        <div class="price">
+                            <span id="giaPhoThong">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 7 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 20 kg</div>
+                        <div class="benefit disabled">Không áp dụng thay đổi vé</div>
+                        <div class="benefit disabled">Không áp dụng hoàn vé</div>
+                        <div class="benefit disabled">Không cung cấp hóa đơn VAT</div>
+                        <div class="benefit info">Vé điện tử sẽ được phát hành trong vòng 2 giờ sau khi thanh toán.</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('pho-thong')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Phổ thông', giaCoBan)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+                <article class="fare">
+                    <div class="fare-top">
+                        <div class="fare-name">Phổ thông | An toàn</div>
+                        <div class="fare-desc">Thêm quyền lợi hoàn vé</div>
+                        <div class="price">
+                            <span id="giaAnToan">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 7 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 20 kg</div>
+                        <div class="benefit disabled">Không áp dụng thay đổi vé</div>
+                        <div class="benefit ok">Hoàn 80% giá vé ban đầu</div>
+                        <div class="benefit ok">Có thể cung cấp hóa đơn VAT</div>
+                        <div class="benefit info">Vé điện tử sẽ được phát hành trong vòng 2 giờ sau khi thanh toán.</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('an-toan')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Phổ thông | An toàn', giaAnToan)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+                <article class="fare">
+                    <div class="fare-top">
+                        <div class="fare-name">Phổ thông | Hành lý+</div>
+                        <div class="fare-desc">Thêm hành lý ký gửi</div>
+                        <div class="price">
+                            <span id="giaHanhLy">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 7 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 40 kg</div>
+                        <div class="benefit ok">Phí đổi lịch bắt đầu từ 423.000 VND</div>
+                        <div class="benefit ok">Phí hoàn tiền bắt đầu từ 428.000 VND</div>
+                        <div class="benefit disabled">Không cung cấp hóa đơn VAT</div>
+                        <div class="benefit info">Vé điện tử sẽ được phát hành trong vòng 2 giờ sau khi thanh toán.</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('hanh-ly')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Phổ thông | Hành lý+', giaHanhLy)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- PHỔ THÔNG ĐẶC BIỆT / THƯƠNG GIA -->
+        <section class="fare-panel" id="panelDacBiet">
+            <div class="fare-grid">
+
+                <article class="fare featured">
+                    <div class="fare-badge">Ưu đãi giới hạn: chọn hạng cao hơn</div>
+
+                    <div class="fare-top" style="padding-top:28px;">
+                        <div class="fare-name">Phổ thông đặc biệt | Premium Economy SkyBoss</div>
+                        <div class="fare-desc">Nhiều quyền lợi hơn</div>
+                        <div class="price">
+                            <span id="giaSkyBoss">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 10 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 30 kg</div>
+                        <div class="benefit ok">Phí đổi lịch bắt đầu từ 423.000 VND</div>
+                        <div class="benefit ok">Phí hoàn tiền bắt đầu từ 428.000 VND</div>
+                        <div class="benefit ok">Có thể cung cấp hóa đơn VAT</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('skyboss')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Phổ thông đặc biệt | Premium Economy SkyBoss', giaSkyBoss)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+                <article class="fare">
+                    <div class="fare-top">
+                        <div class="fare-name">Thương gia | Business</div>
+                        <div class="fare-desc">Hạng thương gia</div>
+                        <div class="price">
+                            <span id="giaBusiness">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 10 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 40 kg</div>
+                        <div class="benefit ok">Phí đổi lịch bắt đầu từ 423.000 VND</div>
+                        <div class="benefit ok">Phí hoàn tiền bắt đầu từ 428.000 VND</div>
+                        <div class="benefit ok">Có thể cung cấp hóa đơn VAT</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('business')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Thương gia | Business', giaBusiness)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+                <article class="fare">
+                    <div class="fare-top">
+                        <div class="fare-name">Thương gia | Flex</div>
+                        <div class="fare-desc">Linh hoạt thay đổi và hoàn vé</div>
+                        <div class="price">
+                            <span id="giaBusinessFlex">0đ</span>
+                            <small>/khách</small>
+                        </div>
+                    </div>
+
+                    <div class="benefits">
+                        <div class="benefit ok">Hành lý xách tay 10 kg</div>
+                        <div class="benefit ok">Hành lý ký gửi 40 kg</div>
+                        <div class="benefit ok">Đổi lịch linh hoạt</div>
+                        <div class="benefit ok">Hoàn tiền theo điều kiện vé</div>
+                        <div class="benefit ok">Có thể cung cấp hóa đơn VAT</div>
+                    </div>
+
+                    <div class="fare-bottom">
+                        <button class="learn-more" type="button" onclick="moChiTietGoiVe('business-flex')">Tìm hiểu thêm</button>
+                        <button class="choose-btn" onclick="chonHangVe('Thương gia | Flex', giaBusinessFlex)">
+                            Chọn
+                        </button>
+                    </div>
+                </article>
+
+            </div>
+        </section>
+
+        <!-- POPUP CHI TIẾT GÓI VÉ -->
+        <div class="fare-detail-modal" id="fareDetailModal" onclick="dongChiTietNen(event)">
+            <div class="fare-detail-box" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+
+                <div class="fare-detail-header">
+                    <div>
+                        <h3 id="detailTitle">Chi tiết gói vé</h3>
+                        <p id="detailSubtitle">Thông tin quyền lợi của gói vé</p>
+                    </div>
+                    <button class="modal-close" type="button" onclick="dongChiTietVe()" aria-label="Đóng">
+                        ×
+                    </button>
+                </div>
+
+                <div class="fare-detail-body">
+
+                    <section class="detail-section">
+                        <h4>Hành lý</h4>
+                        <div class="detail-row">
+                            <span class="detail-icon">▣</span>
+                            <span id="detailCabin">Hành lý xách tay 7 kg</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">▣</span>
+                            <span id="detailChecked">Hành lý ký gửi 20 kg</span>
+                        </div>
+                    </section>
+
+                    <section class="detail-section">
+                        <h4>Thông tin chỗ ngồi</h4>
+                        <div class="detail-row">
+                            <span class="detail-icon">♧</span>
+                            <span>Ghế tiêu chuẩn (Khoảng cách hàng ghế 28 inch)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">▥</span>
+                            <span>Bố cục chỗ ngồi 3-3</span>
+                        </div>
+                    </section>
+
+                    <section class="detail-section">
+                        <h4>Vé linh hoạt</h4>
+                        <div class="detail-row" id="detailChangeRow">
+                            <span class="detail-icon">▣</span>
+                            <span id="detailChange">Không áp dụng thay đổi vé</span>
+                            <span class="detail-arrow">›</span>
+                        </div>
+                        <div class="detail-row" id="detailRefundRow">
+                            <span class="detail-icon">▣</span>
+                            <span id="detailRefund">Không áp dụng hoàn vé</span>
+                            <span class="detail-arrow">›</span>
+                        </div>
+                    </section>
+
+                    <section class="detail-section">
+                        <h4>Tiện nghi trên chuyến bay</h4>
+                        <div class="detail-row detail-muted">
+                            <span class="detail-icon">◉</span>
+                            <span>Không có WiFi</span>
+                        </div>
+                        <div class="detail-row detail-muted">
+                            <span class="detail-icon">▣</span>
+                            <span>Không có giải trí trong chuyến bay</span>
+                        </div>
+                        <div class="detail-row detail-muted">
+                            <span class="detail-icon">♜</span>
+                            <span>Không có suất ăn trên máy bay</span>
+                        </div>
+                        <div class="detail-row detail-muted">
+                            <span class="detail-icon">♢</span>
+                            <span>Không có nguồn & cổng USB</span>
+                        </div>
+                    </section>
+
+                    <section class="detail-section">
+                        <h4>Hóa đơn VAT</h4>
+                        <div class="detail-row detail-muted">
+                            <span class="detail-icon">×</span>
+                            <span id="detailVat">Không cung cấp hóa đơn VAT</span>
+                        </div>
+                        <div class="detail-note" id="detailVatNote">
+                            Với lựa chọn này, chúng tôi không cung cấp hóa đơn VAT.
+                        </div>
+                    </section>
+
+                    <section class="detail-section">
+                        <h4>Vé vé của bạn</h4>
+                        <div class="detail-row">
+                            <span class="detail-icon">ⓘ</span>
+                            <span>Vé điện tử sẽ được phát hành trong vòng 2 giờ sau khi thanh toán.</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">ⓘ</span>
+                            <span>Vé điện tử của bạn sẽ được phát hành tối đa trong vòng 2 giờ sau khi thanh toán thành công.</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-icon">ⓘ</span>
+                            <span>Áp dụng các điều khoản và điều kiện hoàn tiền.</span>
+                        </div>
+                    </section>
+
+                </div>
+
+                <div class="modal-footer">
+                    <div class="modal-price">
+                        <span id="detailPrice">0đ</span>
+                        <small>/khách</small>
+                    </div>
+                    <button class="modal-choose" type="button" onclick="chonGoiDangMo()">
+                        Chọn vé này
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        function getItem(key, fallback = "") {
+            const value = localStorage.getItem(key);
+            return value === null ? fallback : value;
+        }
+
+        const diemdi = getItem("diemdi");
+        const diemden = getItem("diemden");
+        const giobay = getItem("giobay");
+        const hangbay = getItem("hangbay");
+        const ngaybay = getItem("ngaybay");
+        const maChuyenBay = getItem("maChuyenBay");
+        const sotien = Number(getItem("sotien", 0));
+
+        /*
+         * Giá các hạng vé được tính từ giá vé cơ bản.
+         * Có thể đổi các hệ số này sau nếu Firebase có giá riêng
+         * cho từng hạng vé.
+         */
+        const giaCoBan = sotien;
+        const giaAnToan = Math.round(giaCoBan * 1.10);
+        const giaHanhLy = Math.round(giaCoBan * 1.20);
+
+        const giaSkyBoss = Math.round(giaCoBan * 2.25);
+        const giaBusiness = Math.round(giaCoBan * 2.55);
+        const giaBusinessFlex = Math.round(giaCoBan * 2.80);
+
+        function tien(value) {
+            return Number(value).toLocaleString("vi-VN") + "đ";
+        }
+
+        if (!diemdi || !diemden || !hangbay || !giobay || !sotien) {
+            document.querySelector("main").innerHTML = `
+                <div class="empty">
+                    <h2>Không tìm thấy thông tin chuyến bay</h2>
+                    <p>Vui lòng quay lại danh sách chuyến bay và bấm "Chọn" lại.</p>
+                    <button class="continue-btn" onclick="quayLai()">
+                        Quay lại danh sách
+                    </button>
+                </div>
+            `;
+        } else {
+            document.getElementById("diemdi").textContent = diemdi;
+            document.getElementById("diemden").textContent = diemden;
+            document.getElementById("giobay").textContent = giobay;
+            document.getElementById("hangbay").textContent = hangbay;
+            document.getElementById("airlineText").textContent = hangbay;
+
+            document.getElementById("maChuyenBay").textContent =
+                maChuyenBay ? "Mã chuyến: " + maChuyenBay : "Chuyến bay";
+
+            document.getElementById("ngaybay").textContent =
+                ngaybay ? "Khởi hành " + ngaybay : "Ngày khởi hành chưa cập nhật";
+
+            document.getElementById("sanbaydi").textContent =
+                "Sân bay tại " + diemdi;
+
+            document.getElementById("sanbayden").textContent =
+                "Sân bay tại " + diemden;
+
+            document.getElementById("giaPhoThong").textContent = tien(giaCoBan);
+            document.getElementById("giaAnToan").textContent = tien(giaAnToan);
+            document.getElementById("giaHanhLy").textContent = tien(giaHanhLy);
+
+            document.getElementById("giaSkyBoss").textContent = tien(giaSkyBoss);
+            document.getElementById("giaBusiness").textContent = tien(giaBusiness);
+            document.getElementById("giaBusinessFlex").textContent = tien(giaBusinessFlex);
+
+            document.getElementById("giaBatDauDacBiet").textContent =
+                tien(giaSkyBoss);
+        }
+
+        function doiHangVe(loai) {
+            const tabPhoThong = document.getElementById("tabPhoThong");
+            const tabDacBiet = document.getElementById("tabDacBiet");
+            const panelPhoThong = document.getElementById("panelPhoThong");
+            const panelDacBiet = document.getElementById("panelDacBiet");
+
+            if (loai === "dac-biet") {
+                tabPhoThong.classList.remove("active");
+                tabDacBiet.classList.add("active");
+                panelPhoThong.classList.remove("active");
+                panelDacBiet.classList.add("active");
+            } else {
+                tabDacBiet.classList.remove("active");
+                tabPhoThong.classList.add("active");
+                panelDacBiet.classList.remove("active");
+                panelPhoThong.classList.add("active");
+            }
+        }
+
+        function chonHangVe(tenHangVe, giaVe) {
+            localStorage.setItem("sotien", Number(giaVe));
+            localStorage.setItem("hangve", tenHangVe);
+
+            window.location.href = "datve.html";
+        }
+
+
+        let goiDangMo = "pho-thong";
+        let giaDangMo = giaCoBan;
+        let tenGoiDangMo = "Phổ thông";
+
+        const thongTinGoiVe = {
+            "pho-thong": {
+                ten: "Phổ thông",
+                moTa: "Gói cơ bản",
+                cabin: "Hành lý xách tay 7 kg",
+                checked: "Hành lý ký gửi 20 kg",
+                change: "Không áp dụng thay đổi vé",
+                refund: "Không áp dụng hoàn vé",
+                vat: "Không cung cấp hóa đơn VAT",
+                vatNote: "Với lựa chọn này, chúng tôi không cung cấp hóa đơn VAT.",
+                gia: () => giaCoBan
+            },
+            "an-toan": {
+                ten: "Phổ thông | An toàn",
+                moTa: "Thêm quyền lợi hoàn vé",
+                cabin: "Hành lý xách tay 7 kg",
+                checked: "Hành lý ký gửi 20 kg",
+                change: "Không áp dụng thay đổi vé",
+                refund: "Hoàn 80% giá vé ban đầu",
+                vat: "Có thể cung cấp hóa đơn VAT",
+                vatNote: "Gói vé này có thể cung cấp hóa đơn VAT.",
+                gia: () => giaAnToan
+            },
+            "hanh-ly": {
+                ten: "Phổ thông | Hành lý+",
+                moTa: "Thêm hành lý ký gửi",
+                cabin: "Hành lý xách tay 7 kg",
+                checked: "Hành lý ký gửi 40 kg",
+                change: "Phí đổi lịch bắt đầu từ 423.000 VND",
+                refund: "Phí hoàn tiền bắt đầu từ 428.000 VND",
+                vat: "Không cung cấp hóa đơn VAT",
+                vatNote: "Với lựa chọn này, chúng tôi không cung cấp hóa đơn VAT.",
+                gia: () => giaHanhLy
+            },
+            "skyboss": {
+                ten: "Phổ thông đặc biệt | Premium Economy SkyBoss",
+                moTa: "Nhiều quyền lợi hơn",
+                cabin: "Hành lý xách tay 10 kg",
+                checked: "Hành lý ký gửi 30 kg",
+                change: "Phí đổi lịch bắt đầu từ 423.000 VND",
+                refund: "Phí hoàn tiền bắt đầu từ 428.000 VND",
+                vat: "Có thể cung cấp hóa đơn VAT",
+                vatNote: "Gói vé này có thể cung cấp hóa đơn VAT.",
+                gia: () => giaSkyBoss
+            },
+            "business": {
+                ten: "Thương gia | Business",
+                moTa: "Hạng thương gia",
+                cabin: "Hành lý xách tay 10 kg",
+                checked: "Hành lý ký gửi 40 kg",
+                change: "Phí đổi lịch bắt đầu từ 423.000 VND",
+                refund: "Phí hoàn tiền bắt đầu từ 428.000 VND",
+                vat: "Có thể cung cấp hóa đơn VAT",
+                vatNote: "Gói vé này có thể cung cấp hóa đơn VAT.",
+                gia: () => giaBusiness
+            },
+            "business-flex": {
+                ten: "Thương gia | Flex",
+                moTa: "Linh hoạt thay đổi và hoàn vé",
+                cabin: "Hành lý xách tay 10 kg",
+                checked: "Hành lý ký gửi 40 kg",
+                change: "Đổi lịch linh hoạt",
+                refund: "Hoàn tiền theo điều kiện vé",
+                vat: "Có thể cung cấp hóa đơn VAT",
+                vatNote: "Gói vé này có thể cung cấp hóa đơn VAT.",
+                gia: () => giaBusinessFlex
+            }
+        };
+
+        function moChiTietGoiVe(loai) {
+            const goi = thongTinGoiVe[loai];
+            if (!goi) return;
+
+            goiDangMo = loai;
+            tenGoiDangMo = goi.ten;
+            giaDangMo = goi.gia();
+
+            document.getElementById("detailTitle").textContent = goi.ten;
+            document.getElementById("detailSubtitle").textContent =
+                goi.moTa + " • " + diemdi + " → " + diemden;
+
+            document.getElementById("detailCabin").textContent = goi.cabin;
+            document.getElementById("detailChecked").textContent = goi.checked;
+            document.getElementById("detailChange").textContent = goi.change;
+            document.getElementById("detailRefund").textContent = goi.refund;
+            document.getElementById("detailVat").textContent = goi.vat;
+            document.getElementById("detailVatNote").textContent = goi.vatNote;
+            document.getElementById("detailPrice").textContent = tien(giaDangMo);
+
+            const modal = document.getElementById("fareDetailModal");
+            modal.classList.add("show");
+            document.body.style.overflow = "hidden";
+        }
+
+        function dongChiTietVe() {
+            document.getElementById("fareDetailModal").classList.remove("show");
+            document.body.style.overflow = "";
+        }
+
+        function dongChiTietNen(event) {
+            if (event.target === document.getElementById("fareDetailModal")) {
+                dongChiTietVe();
+            }
+        }
+
+        function chonGoiDangMo() {
+            chonHangVe(tenGoiDangMo, giaDangMo);
+        }
+
+        function tiepTucDatVe() {
+            chonHangVe("Phổ thông", giaCoBan);
+        }
+
+        function quayLai() {
+            window.location.href = "index.html";
+        }
+    </script>
+</body>
+</html>

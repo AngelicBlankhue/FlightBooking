@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chi tiết đặt vé</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        body {
+            background-color: #EEF5FF;
+            font-family: Arial;
+        }
+
+        .box {
+            background-color: #B4D4FF;
+            max-width: 450px;
+            margin: 50px auto;
+            padding: 25px;
+            border-radius: 12px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #176B87;
+        }
+
+        p {
+            font-size: 16px;
+        }
+
+        .btn {
+            margin-top: 15px;
+            background-color: #176B87;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* Nền ảnh rõ hơn */
+        .background {
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(255, 255, 255, 0.15),
+                    rgba(255, 255, 255, 0.15)),
+                url("vietnam-airlines.png");
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Khung chi tiết vé */
+        .ticket-container {
+            width: 420px;
+            padding: 25px;
+            border-radius: 14px;
+            background: rgba(180, 215, 255, 0.96);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+            font-size: 15px;
+        }
+
+        .ticket-container h2 {
+            text-align: center;
+            color: #0b4f6c;
+            margin-bottom: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="background">
+        <div class="box">
+            <h2>Chi tiết vé đã đặt</h2>
+
+            <p><b>Họ và tên:</b> <span id="hoten"></span></p>
+            <p><b>Số điện thoại:</b> <span id="sdt"></span></p>
+            <p><b>Email:</b> <span id="email"></span></p>
+            <p><b>Số người đi:</b> <span id="songuoi"></span></p>
+
+            <hr>
+
+            <p><b>Hãng bay:</b> <span id="hangbay"></span></p>
+            <p><b>Chuyến bay:</b> <span id="tuyenbay"></span></p>
+            <p><b>Giờ bay:</b> <span id="giobay"></span></p>
+            <p><b>Tổng tiền:</b> <span id="sotien"></span></p>
+
+            <button class="btn" onclick="quayLai()">Quay lại trang chủ</button>
+        </div>
+    </div>
+    <script>
+
+        document.getElementById("hoten").innerText =
+            localStorage.getItem("hoten");
+
+        document.getElementById("sdt").innerText =
+            localStorage.getItem("sdt");
+
+        document.getElementById("email").innerText =
+            localStorage.getItem("email");
+
+        document.getElementById("songuoi").innerText =
+            localStorage.getItem("songuoi");
+
+        document.getElementById("hangbay").innerText =
+            localStorage.getItem("hangbay");
+
+        document.getElementById("tuyenbay").innerText =
+            localStorage.getItem("diemdi") + " → " +
+            localStorage.getItem("diemden");
+
+        document.getElementById("giobay").innerText =
+            localStorage.getItem("giobay");
+
+        let tongtien =
+            Number(localStorage.getItem("songuoi")) *
+            Number(localStorage.getItem("sotien"));
+
+        document.getElementById("sotien").innerText =
+            tongtien.toLocaleString("vi-VN") + " VNĐ";
+
+        function quayLai() {
+            window.location.href = "index.html";
+        }
+
+    </script>
+</body>
+
+</html>

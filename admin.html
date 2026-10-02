@@ -1,0 +1,1972 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - FlightBooking</title>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #eef5ff;
+            color: #17324d;
+        }
+
+        .top {
+            height: 68px;
+            background: #0b5c6b;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+        }
+
+        .logo {
+            font-size: 21px;
+            font-weight: bold;
+        }
+
+        .badge {
+            background: #176b87;
+            padding: 8px 13px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .layout {
+            display: flex;
+            min-height: calc(100vh - 68px);
+        }
+
+        .side {
+            width: 230px;
+            background: white;
+            border-right: 1px solid #d8e6f4;
+            padding: 18px 12px;
+        }
+
+        .side button {
+            display: block;
+            width: 100%;
+            border: 0;
+            background: transparent;
+            color: #176b87;
+            text-align: left;
+            padding: 13px;
+            border-radius: 9px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 15px;
+        }
+
+        .side button:hover,
+        .side button.active {
+            background: #dceeff;
+            font-weight: bold;
+        }
+
+        .main {
+            flex: 1;
+            padding: 25px;
+            overflow: auto;
+        }
+
+        h1 {
+            color: #0b4f6c;
+            margin: 0 0 6px;
+        }
+
+        .sub {
+            color: #667;
+            margin: 0 0 20px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .card,
+        .panel {
+            background: white;
+            border-radius: 14px;
+            box-shadow: 0 7px 22px rgba(0, 0, 0, .08);
+        }
+
+        .card {
+            padding: 20px;
+            border-left: 5px solid #176b87;
+        }
+
+        .card small {
+            color: #667;
+        }
+
+        .number {
+            font-size: 28px;
+            font-weight: bold;
+            color: #0b4f6c;
+            margin-top: 8px;
+        }
+
+        .panel {
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel h2 {
+            margin: 0 0 16px;
+            color: #176b87;
+            font-size: 19px;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        input,
+        select {
+            padding: 11px;
+            border: 1px solid #b9cfe3;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        .search {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .btn {
+            border: 0;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .primary {
+            background: #176b87;
+            color: white;
+        }
+
+        .danger {
+            background: #ffe0e0;
+            color: #b00020;
+        }
+
+        .table {
+            overflow: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 950px;
+        }
+
+        th,
+        td {
+            padding: 11px;
+            border-bottom: 1px solid #e3edf6;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #eef7ff;
+            color: #176b87;
+        }
+
+        .status {
+            background: #e2f7e9;
+            color: #18733a;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .empty {
+            text-align: center;
+            color: #777;
+            padding: 30px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+        .flight-actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .edit-btn {
+            background: #fff0bd;
+            color: #765600;
+        }
+
+        .flight-delete {
+            background: #ffe0e0;
+            color: #b00020;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1000;
+        }
+
+        .modal-box {
+            width: min(650px, 100%);
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.2);
+        }
+
+        .modal-box h2 {
+            margin-top: 0;
+            color: #176b87;
+        }
+
+        .flight-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .flight-form .full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .secondary {
+            background: #edf3f8;
+            color: #17324d;
+        }
+
+        .flight-note {
+            margin: 0 0 14px;
+            color: #667;
+            font-size: 13px;
+        }
+
+        @media(max-width:650px) {
+            .flight-form {
+                grid-template-columns: 1fr;
+            }
+
+            .flight-form .full {
+                grid-column: auto;
+            }
+        }
+
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .btn.small {
+            padding: 7px 10px;
+            font-size: 12px;
+        }
+
+        .edit {
+            background: #fff4cc;
+            color: #8a6500;
+        }
+
+        .add {
+            background: #dff6e7;
+            color: #176b45;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 9999;
+        }
+
+        .modal-box {
+            width: min(720px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 15px 50px rgba(0,0,0,.2);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .form-grid label {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            color: #176b87;
+            margin-bottom: 5px;
+        }
+
+        .form-grid input,
+        .form-grid select {
+            width: 100%;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        @media(max-width:650px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-full {
+                grid-column: auto;
+            }
+        }
+
+        .login-msg {
+            text-align: center;
+            padding: 80px 20px;
+            font-size: 18px;
+        }
+
+        .error-box {
+            max-width: 500px;
+            margin: 60px auto;
+            background: white;
+            padding: 35px;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, .12);
+            text-align: center;
+        }
+
+        .error-box h2 {
+            color: #b00020;
+        }
+
+        code {
+            background: #eef5ff;
+            padding: 3px 6px;
+            border-radius: 5px;
+        }
+
+        @media(max-width:900px) {
+            .cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media(max-width:650px) {
+            .layout {
+                display: block;
+            }
+
+            .side {
+                width: 100%;
+                display: flex;
+                overflow: auto;
+            }
+
+            .side button {
+                min-width: 140px;
+            }
+
+            .main {
+                padding: 15px;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    
+        .status.cancelled {
+            background: #fde2e2 !important;
+            color: #d93025 !important;
+            border: 1px solid #f3b5b1;
+        }
+
+    </style>
+</head>
+
+<body>
+
+    <header class="top">
+        <div class="logo">✈️ FlightBooking — Admin</div>
+        <div class="badge">Admin</div>
+    </header>
+
+    <!-- Trạng thái kiểm tra -->
+    <div id="loginMsg" class="login-msg">
+        ⏳ Đang kiểm tra quyền truy cập...
+    </div>
+
+    <!-- App Admin -->
+    <div id="app" class="layout hidden">
+
+        <aside class="side">
+
+            <button class="active" onclick="openTab('dashboard', this)">
+                📊 Tổng quan
+            </button>
+
+            <button onclick="openTab('orders', this)">
+                🎫 Đơn đặt vé
+            </button>
+
+            <button onclick="openTab('flights', this)">
+                ✈️ Quản lý vé
+            </button>
+
+            <button onclick="openTab('users', this)">
+                👤 Người dùng
+            </button>
+
+            <button onclick="openTab('system', this)">
+                ⚙️ Hệ thống
+            </button>
+
+            <button onclick="logout()">
+                🚪 Đăng xuất
+            </button>
+
+        </aside>
+
+        <main class="main">
+
+            <!-- DASHBOARD -->
+            <section id="dashboard">
+
+                <h1>Tổng quan</h1>
+
+                <p class="sub">
+                    Quản lý dữ liệu website FlightBooking.
+                </p>
+
+                <div class="cards">
+
+                    <div class="card">
+                        <small>Tổng đơn đặt vé</small>
+                        <div class="number" id="ordersCount">0</div>
+                    </div>
+
+                    <div class="card">
+                        <small>Tổng người dùng</small>
+                        <div class="number" id="usersCount">0</div>
+                    </div>
+
+                    <div class="card">
+                        <small>Tổng hành khách</small>
+                        <div class="number" id="passengersCount">0</div>
+                    </div>
+
+                    <div class="card">
+                        <small>Doanh thu</small>
+                        <div class="number" id="revenue">0 ₫</div>
+                    </div>
+
+                </div>
+
+                <div class="panel">
+
+                    <h2>🔥 Firebase</h2>
+
+                    <p>
+                        <b>Project:</b>
+                        <code>flightbooking-6fcdd</code>
+                    </p>
+
+                    <p>
+                        <b>Authentication:</b>
+                        Email / Password
+                    </p>
+
+                    <p>
+                        <b>Firestore:</b>
+                        <code>datVe</code>,
+                        <code>users</code>
+                    </p>
+
+                    <p>
+                        <b>Tài khoản Admin:</b>
+                        <span id="currentEmail">-</span>
+                    </p>
+
+                </div>
+
+            </section>
+
+
+            <!-- ORDERS -->
+            <section id="orders" class="hidden">
+
+                <h1>🎫 Đơn đặt vé</h1>
+
+                <p class="sub">
+                    Danh sách đơn lấy từ Firestore.
+                </p>
+
+                <div class="panel">
+
+                    <p class="flight-note">
+                        Kho vé Firebase: <code id="flightCollectionName">chuyenBay</code>
+                    </p>
+
+                    <div class="toolbar">
+
+                        <input id="orderSearch" class="search" placeholder="Tìm mã vé, tên, email, hành trình..."
+                            oninput="filterOrders()">
+
+                        <button class="btn add" onclick="openOrderForm()">
+                            ➕ Thêm đơn
+                        </button>
+
+                        <button class="btn primary" onclick="loadAll()">
+                            🔄 Làm mới
+                        </button>
+
+                    </div>
+
+                    <div class="table">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>Mã vé</th>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Hành trình</th>
+                                    <th>Hãng bay</th>
+                                    <th>Người</th>
+                                    <th>Tổng tiền</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="ordersTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+
+            <!-- FLIGHTS / QUẢN LÝ VÉ -->
+            <section id="flights" class="hidden">
+
+                <h1>✈️ Quản lý vé</h1>
+
+                <p class="sub">
+                    Quản lý toàn bộ chuyến bay đang bán trên website.
+                    Đây là kho vé, không phải danh sách đơn khách đã đặt.
+                </p>
+
+                <div class="panel">
+
+                    <div class="toolbar">
+
+                        <input
+                            id="flightSearch"
+                            class="search"
+                            placeholder="Tìm mã vé, hãng, điểm đi, điểm đến..."
+                            oninput="filterFlights()">
+
+                        <button class="btn primary" onclick="openFlightModal()">
+                            ➕ Thêm vé
+                        </button>
+
+                        <button class="btn primary" onclick="loadFlights()">
+                            🔄 Làm mới
+                        </button>
+
+                    </div>
+
+                    <div class="table">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>Mã vé</th>
+                                    <th>Hãng bay</th>
+                                    <th>Điểm đi</th>
+                                    <th>Điểm đến</th>
+                                    <th>Giờ bay</th>
+                                    <th>Giá</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="flightsTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- USERS -->
+            <section id="users" class="hidden">
+
+                <h1>👤 Người dùng</h1>
+
+                <p class="sub">
+                    Danh sách tài khoản được lưu trong Firestore.
+                </p>
+
+                <div class="panel">
+
+                    <div class="toolbar">
+
+                        <input id="userSearch" class="search" placeholder="Tìm tên, email hoặc UID..."
+                            oninput="filterUsers()">
+
+                    </div>
+
+                    <div class="table">
+
+                        <table>
+
+                            <thead>
+                                <tr>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>UID</th>
+                                    <th>Ngày tạo</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="usersTable"></tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- SYSTEM -->
+            <section id="system" class="hidden">
+
+                <h1>⚙️ Hệ thống</h1>
+
+                <p class="sub">
+                    Thông tin cấu hình website.
+                </p>
+
+                <div class="panel">
+
+                    <h2>Các trang hiện có</h2>
+
+                    <p>
+                        Đăng ký:
+                        <code>dangky.html</code>
+                    </p>
+
+                    <p>
+                        Đăng nhập:
+                        <code>dangnhap.html</code>
+                    </p>
+
+                    <p>
+                        Đặt vé:
+                        <code>datve.html</code>
+                    </p>
+
+                    <p>
+                        Chi tiết vé:
+                        <code>chitiet.html</code>
+                    </p>
+
+                    <p>
+                        Giới thiệu:
+                        <code>about.html</code>
+                    </p>
+
+                    <p>
+                        Trang Admin:
+                        <code>admin.html</code>
+                    </p>
+
+                </div>
+
+                <div class="panel">
+
+                    <h2>🔐 Quyền Admin</h2>
+
+                    <p>
+                        Tài khoản được phép truy cập:
+                    </p>
+
+                    <p>
+                        <code>nhatthangnguyen572@gmail.com</code>
+                    </p>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+
+    <!-- FORM THÊM / SỬA ĐƠN ĐẶT VÉ -->
+    <div id="orderModal" class="modal hidden">
+        <div class="modal-box">
+            <h2 id="orderModalTitle">➕ Thêm đơn đặt vé</h2>
+
+            <input type="hidden" id="orderId">
+
+            <div class="form-grid">
+                <div>
+                    <label>Mã vé</label>
+                    <input id="fMaDatVe" placeholder="VD: FB001">
+                </div>
+
+                <div>
+                    <label>Họ tên</label>
+                    <input id="fHoten" placeholder="Họ tên khách hàng">
+                </div>
+
+                <div>
+                    <label>Email</label>
+                    <input id="fEmail" type="email" placeholder="email@example.com">
+                </div>
+
+                <div>
+                    <label>Số điện thoại</label>
+                    <input id="fSdt" placeholder="Số điện thoại">
+                </div>
+
+                <div>
+                    <label>Điểm đi</label>
+                    <input id="fDiemdi" placeholder="Hà Nội">
+                </div>
+
+                <div>
+                    <label>Điểm đến</label>
+                    <input id="fDiemden" placeholder="Đà Lạt">
+                </div>
+
+                <div>
+                    <label>Giờ bay</label>
+                    <input id="fGiobay" placeholder="08:00">
+                </div>
+
+                <div>
+                    <label>Hãng bay</label>
+                    <input id="fHangbay" placeholder="Vietnam Airlines">
+                </div>
+
+                <div>
+                    <label>Số người</label>
+                    <input id="fSonguoi" type="number" min="1" value="1">
+                </div>
+
+                <div>
+                    <label>Tổng tiền (₫)</label>
+                    <input id="fTongTien" type="number" min="0" value="0">
+                </div>
+
+                <div>
+                    <label>Trạng thái</label>
+                    <select id="fTrangThai">
+                        <option value="Đã đặt">Đã đặt</option>
+                        <option value="Đã hủy">Đã hủy</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label>UID khách hàng</label>
+                    <input id="fUserId" placeholder="UID Firebase (nếu có)">
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn cancel" onclick="closeOrderForm()">Hủy</button>
+                <button class="btn primary" onclick="saveOrder()">💾 Lưu</button>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- MODAL THÊM / SỬA VÉ -->
+    <div id="flightModal" class="modal hidden">
+        <div class="modal-box">
+
+            <h2 id="flightModalTitle">➕ Thêm vé</h2>
+
+            <p class="flight-note">
+                Thông tin này sẽ được lưu trực tiếp vào kho vé trên Firebase.
+                Hệ thống dùng collection vé hiện có của website.
+            </p>
+
+            <input type="hidden" id="flightDocId">
+
+            <div class="flight-form">
+
+                <div>
+                    <label>Mã vé</label>
+                    <input id="flightId" placeholder="VD: VN001">
+                </div>
+
+                <div>
+                    <label>Hãng bay</label>
+                    <input id="flightHang" placeholder="VD: Vietnam Airlines">
+                </div>
+
+                <div>
+                    <label>Điểm đi</label>
+                    <input id="flightFrom" placeholder="VD: Hà Nội">
+                </div>
+
+                <div>
+                    <label>Điểm đến</label>
+                    <input id="flightTo" placeholder="VD: Đà Lạt">
+                </div>
+
+                <div>
+                    <label>Giờ bay</label>
+                    <input id="flightTime" placeholder="VD: 08:00 - 10:10">
+                </div>
+
+                <div>
+                    <label>Giá vé (VNĐ)</label>
+                    <input id="flightPrice" type="number" min="0" placeholder="2050000">
+                </div>
+
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn secondary" onclick="closeFlightModal()">
+                    Hủy
+                </button>
+
+                <button class="btn primary" onclick="saveFlight()">
+                    💾 Lưu vé
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // =====================================================
+        // Cloudinary
+        // =====================================================
+    
+        const CLOUD_NAME = "";
+        const UPLOAD_PRESET = "";
+
+        // =====================================================
+        // FIREBASE CONFIG
+        // =====================================================
+
+        const firebaseConfig = {
+
+            apiKey:
+                "AIzaSyBKr3kRw_2w3BNfR5dSpsLpsHWg5igeqJw",
+
+            authDomain:
+                "flightbooking-6fcdd.firebaseapp.com",
+
+            projectId:
+                "flightbooking-6fcdd",
+
+            storageBucket:
+                "flightbooking-6fcdd.firebasestorage.app",
+
+            messagingSenderId:
+                "481452769984",
+
+            appId:
+                "1:481452769984:web:45c32d3c9d3b6a92dba325",
+
+            measurementId:
+                "G-J929JY5NQY"
+
+        };
+
+
+        // =====================================================
+        // TÀI KHOẢN DUY NHẤT ĐƯỢC VÀO TRANG Admin
+        // =====================================================
+
+        const ADMIN_EMAIL =
+            "nhatthangnguyen572@gmail.com";
+
+
+        // =====================================================
+        // KHỞI TẠO FIREBASE
+        // =====================================================
+
+        firebase.initializeApp(firebaseConfig);
+
+        const db = firebase.firestore();
+
+
+        // =====================================================
+        // DỮ LIỆU
+        // =====================================================
+
+        let orders = [];
+        let users = [];
+
+
+        // =====================================================
+        // KIỂM TRA ĐĂNG NHẬP + QUYỀN Admin
+        // =====================================================
+
+        firebase.auth().onAuthStateChanged(async function (user) {
+
+            const loginMsg =
+                document.getElementById("loginMsg");
+
+            const app =
+                document.getElementById("app");
+
+
+            // Không đăng nhập
+            if (!user) {
+
+                loginMsg.innerHTML = `
+                    <div class="error-box">
+
+                        <h2>🔒 Chưa đăng nhập</h2>
+
+                        <p>
+                            Bạn cần đăng nhập tài khoản Admin
+                            để truy cập trang này.
+                        </p>
+
+                        <br>
+
+                        <a href="dangnhap.html">
+                            👉 Đi tới trang đăng nhập
+                        </a>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            // Email người dùng hiện tại
+            const currentEmail =
+                (user.email || "")
+                    .toLowerCase()
+                    .trim();
+
+
+            // Email admin
+            const adminEmail =
+                ADMIN_EMAIL
+                    .toLowerCase()
+                    .trim();
+
+
+            console.log(
+                "Email hiện tại:",
+                currentEmail
+            );
+
+
+            console.log(
+                "Email Admin:",
+                adminEmail
+            );
+
+
+            // =================================================
+            // KHÔNG PHẢI ADMIN
+            // =================================================
+
+            if (currentEmail !== adminEmail) {
+
+                loginMsg.innerHTML = `
+                    <div class="error-box">
+
+                        <h2>🚫 Không có quyền truy cập</h2>
+
+                        <p>
+                            Tài khoản này không được phép
+                            truy cập trang Admin.
+                        </p>
+
+                        <p>
+                            Email hiện tại:
+                            <b>${safe(user.email || "")}</b>
+                        </p>
+
+                        <br>
+
+                        <button
+                            class="btn danger"
+                            onclick="logout()">
+                            🚪 Đăng xuất
+                        </button>
+
+                    </div>
+                `;
+
+                return;
+            }
+
+
+            // =================================================
+            // ĐÚNG ADMIN
+            // =================================================
+
+            console.log(
+                "✅ Admin được phép truy cập."
+            );
+
+
+            loginMsg.classList.add("hidden");
+
+            app.classList.remove("hidden");
+
+
+            document.getElementById(
+                "currentEmail"
+            ).textContent = user.email;
+
+
+            await loadAll();
+
+        });
+
+
+        // =====================================================
+        // LOAD FIRESTORE
+        // =====================================================
+
+        async function loadAll() {
+            try {
+                const orderSnap = await db.collection("datVe").get();
+                const userSnap = await db.collection("users").get();
+
+                orders = orderSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                users = userSnap.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                /*
+                 * Nếu collection users đang trống, lấy thông tin người
+                 * dùng từ các đơn đặt vé để không để trang Admin trắng.
+                 * Đây chỉ là fallback hiển thị, không tạo tài khoản Auth.
+                 */
+                if (users.length === 0 && orders.length > 0) {
+                    const map = new Map();
+
+                    orders.forEach(order => {
+                        const uid = order.userId || "";
+                        const email = String(order.email || "").trim().toLowerCase();
+
+                        if (!uid && !email) return;
+
+                        const key = uid || email;
+
+                        if (!map.has(key)) {
+                            map.set(key, {
+                                id: uid || key,
+                                uid: uid,
+                                hoTen: order.hoten || "",
+                                email: order.email || "",
+                                createdAt: order.createdAt || null,
+                                _fromOrders: true
+                            });
+                        }
+                    });
+
+                    users = Array.from(map.values());
+                }
+
+                renderOrders(orders);
+                renderUsers(users);
+                updateStats();
+
+                if (userSnap.empty && orders.length === 0) {
+                    console.info(
+                        "Firestore không có documents trong users/datVe."
+                    );
+                } else if (userSnap.empty) {
+                    console.warn(
+                        "Collection users đang trống. Danh sách hiển thị từ datVe."
+                    );
+                }
+            }
+            catch (error) {
+                console.error("Firestore error:", error);
+
+                alert(
+                    "❌ Không tải được dữ liệu Firestore:\n\n" +
+                    (error.message || error)
+                );
+            }
+        }
+
+        // =====================================================
+        // THỐNG KÊ
+        // =====================================================
+
+        function updateStats() {
+
+            document.getElementById(
+                "ordersCount"
+            ).textContent = orders.length;
+
+
+            document.getElementById(
+                "usersCount"
+            ).textContent = users.length;
+
+
+            const passengers =
+                orders.reduce(
+
+                    (sum, order) =>
+                        sum +
+                        Number(order.songuoi || 0),
+
+                    0
+
+                );
+
+
+            // Đơn đã hủy KHÔNG được tính vào doanh thu.
+            const revenue =
+                orders.reduce((sum, order) => {
+                    const status = String(
+                        order.trangThai || "Đã đặt"
+                    ).trim().toLowerCase();
+
+                    const isCancelled =
+                        status === "đã hủy" ||
+                        status === "da huy" ||
+                        status === "đã huỷ" ||
+                        status === "da huỷ" ||
+                        status === "cancelled" ||
+                        status === "canceled";
+
+                    return isCancelled
+                        ? sum
+                        : sum + Number(order.tongTien || 0);
+                }, 0);
+
+
+            document.getElementById(
+                "passengersCount"
+            ).textContent = passengers;
+
+
+            document.getElementById(
+                "revenue"
+            ).textContent =
+                revenue.toLocaleString("vi-VN")
+                + " ₫";
+
+        }
+
+
+        // =====================================================
+        // HIỂN THỊ ĐƠN
+        // =====================================================
+
+        function renderOrders(data) {
+
+            const table =
+                document.getElementById(
+                    "ordersTable"
+                );
+
+
+            if (!data.length) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="8"
+                            class="empty">
+                            Chưa có đơn đặt vé.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            table.innerHTML =
+                data.map(order => `
+
+                    <tr>
+
+                        <td>
+                            <b>
+                                ${safe(
+                    order.maDatVe ||
+                    order.id
+                )}
+                            </b>
+                        </td>
+
+                        <td>
+                            ${safe(order.hoten)}
+                        </td>
+
+                        <td>
+                            ${safe(order.email)}
+                        </td>
+
+                        <td>
+                            ${safe(order.diemdi)}
+                            →
+                            ${safe(order.diemden)}
+                        </td>
+
+                        <td>
+                            ${safe(order.hangbay)}
+                        </td>
+
+                        <td>
+                            ${Number(
+                    order.songuoi || 0
+                )}
+                        </td>
+
+                        <td>
+                            <b>
+                                ${Number(
+                    order.tongTien || 0
+                ).toLocaleString("vi-VN")}
+                                ₫
+                            </b>
+                        </td>
+
+                        <td>
+                            <span class="status ${(() => {
+                                const s = String(order.trangThai || "Đã đặt").trim().toLowerCase();
+                                const cancelled = s.includes("hủy") || s.includes("huỷ") || s === "cancelled" || s === "canceled";
+                                return cancelled ? "cancelled" : "";
+                            })()}" style="${(() => {
+                                const s = String(order.trangThai || "Đã đặt").trim().toLowerCase();
+                                const cancelled = s.includes("hủy") || s.includes("huỷ") || s === "cancelled" || s === "canceled";
+                                return cancelled ? "background:#fde2e2;color:#d93025;border:1px solid #f3b5b1;" : "";
+                            })()}">
+                                ${safe(order.trangThai || "Đã đặt")}
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="actions">
+                                <button class="btn small edit"
+                                    onclick="editOrder('${safeAttr(order.id)}')">
+                                    ✏️ Sửa
+                                </button>
+                                <button class="btn small danger"
+                                    onclick="deleteOrder('${safeAttr(order.id)}')">
+                                    🗑️ Xóa
+                                </button>
+                            </div>
+                        </td>
+
+                    </tr>
+
+                `).join("");
+
+        }
+
+
+        // =====================================================
+        // HIỂN THỊ USERS
+        // =====================================================
+
+        function renderUsers(data) {
+
+            const table =
+                document.getElementById(
+                    "usersTable"
+                );
+
+
+            if (!data.length) {
+
+                table.innerHTML = `
+                    <tr>
+                        <td
+                            colspan="4"
+                            class="empty">
+                            Chưa có người dùng.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+
+            table.innerHTML =
+                data.map(user => {
+
+                    let date = "";
+
+
+                    if (
+                        user.createdAt &&
+                        user.createdAt.toDate
+                    ) {
+
+                        date =
+                            user.createdAt
+                                .toDate()
+                                .toLocaleString("vi-VN");
+
+                    }
+
+
+                    return `
+
+                        <tr>
+
+                            <td>
+                                ${safe(
+                        user.hoTen ||
+                        user.hoten ||
+                        ""
+                    )}
+                            </td>
+
+                            <td>
+                                ${safe(
+                        user.email || ""
+                    )}
+                                ${user._fromOrders
+                            ? '<small style="display:block;color:#176b87;">Từ đơn đặt vé</small>'
+                            : ""}
+                            </td>
+
+                            <td>
+                                ${safe(
+                                user.uid ||
+                                user.id ||
+                                ""
+                            )}
+                            </td>
+
+                            <td>
+                                ${safe(date)}
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }).join("");
+
+        }
+
+
+        // =====================================================
+        // THÊM / SỬA / XÓA ĐƠN ĐẶT VÉ
+        // =====================================================
+
+        function safeAttr(value) {
+            return String(value ?? "")
+                .replaceAll("\\", "\\\\")
+                .replaceAll("'", "\\'");
+        }
+
+        function openOrderForm(order = null) {
+            document.getElementById("orderModal").classList.remove("hidden");
+
+            document.getElementById("orderModalTitle").textContent =
+                order ? "✏️ Sửa đơn đặt vé" : "➕ Thêm đơn đặt vé";
+
+            document.getElementById("orderId").value = order?.id || "";
+            document.getElementById("fMaDatVe").value = order?.maDatVe || "";
+            document.getElementById("fHoten").value = order?.hoten || "";
+            document.getElementById("fEmail").value = order?.email || "";
+            document.getElementById("fSdt").value = order?.sdt || order?.phone || "";
+            document.getElementById("fDiemdi").value = order?.diemdi || "";
+            document.getElementById("fDiemden").value = order?.diemden || "";
+            document.getElementById("fGiobay").value = order?.giobay || "";
+            document.getElementById("fHangbay").value = order?.hangbay || "";
+            document.getElementById("fSonguoi").value = Number(order?.songuoi || 1);
+            document.getElementById("fTongTien").value = Number(order?.tongTien || 0);
+            document.getElementById("fTrangThai").value = order?.trangThai || "Đã đặt";
+            document.getElementById("fUserId").value = order?.userId || "";
+        }
+
+        function closeOrderForm() {
+            document.getElementById("orderModal").classList.add("hidden");
+        }
+
+        async function saveOrder() {
+            const id = document.getElementById("orderId").value.trim();
+
+            const data = {
+                maDatVe: document.getElementById("fMaDatVe").value.trim(),
+                hoten: document.getElementById("fHoten").value.trim(),
+                email: document.getElementById("fEmail").value.trim(),
+                sdt: document.getElementById("fSdt").value.trim(),
+                diemdi: document.getElementById("fDiemdi").value.trim(),
+                diemden: document.getElementById("fDiemden").value.trim(),
+                giobay: document.getElementById("fGiobay").value.trim(),
+                hangbay: document.getElementById("fHangbay").value.trim(),
+                songuoi: Number(document.getElementById("fSonguoi").value || 1),
+                tongTien: Number(document.getElementById("fTongTien").value || 0),
+                trangThai: document.getElementById("fTrangThai").value,
+                userId: document.getElementById("fUserId").value.trim()
+            };
+
+            if (!data.hoten || !data.email || !data.diemdi || !data.diemden) {
+                alert("⚠️ Vui lòng nhập họ tên, email, điểm đi và điểm đến.");
+                return;
+            }
+
+            try {
+                if (id) {
+                    await db.collection("datVe").doc(id).update(data);
+                    alert("✅ Đã sửa đơn đặt vé.");
+                } else {
+                    data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+
+                    if (!data.maDatVe) {
+                        data.maDatVe =
+                            "FB" + Date.now().toString().slice(-8);
+                    }
+
+                    await db.collection("datVe").add(data);
+                    alert("✅ Đã thêm đơn đặt vé.");
+                }
+
+                closeOrderForm();
+                await loadAll();
+            } catch (error) {
+                console.error("Save order error:", error);
+                alert("❌ Không thể lưu đơn:\n\n" + error.message);
+            }
+        }
+
+        function editOrder(id) {
+            const order = orders.find(item => item.id === id);
+
+            if (!order) {
+                alert("❌ Không tìm thấy đơn đặt vé.");
+                return;
+            }
+
+            openOrderForm(order);
+        }
+
+        async function deleteOrder(id) {
+            const order = orders.find(item => item.id === id);
+
+            if (!order) {
+                alert("❌ Không tìm thấy đơn đặt vé.");
+                return;
+            }
+
+            const code = order.maDatVe || order.id;
+
+            if (!confirm(
+                "Bạn có chắc muốn XÓA đơn " + code + "?\\n\\n" +
+                "Thao tác này sẽ xóa dữ liệu khỏi Firestore."
+            )) {
+                return;
+            }
+
+            try {
+                await db.collection("datVe").doc(id).delete();
+                alert("🗑️ Đã xóa đơn đặt vé.");
+                await loadAll();
+            } catch (error) {
+                console.error("Delete order error:", error);
+                alert("❌ Không thể xóa đơn:\n\n" + error.message);
+            }
+        }
+
+
+        // =====================================================
+        // QUẢN LÝ VÉ / CHUYẾN BAY
+        // =====================================================
+
+        // Collection này là KHO VÉ, tách biệt với datVe (đơn khách).
+        // Kho vé máy bay trong Firestore.
+        // Code sẽ ưu tiên "chuyenBay"; nếu collection này chưa có dữ liệu
+        // thì thử "ChuyenBay" để giữ tương thích với dữ liệu cũ.
+        let FLIGHT_COLLECTION = "chuyenBay";
+        let flights = [];
+
+        async function loadFlights() {
+            try {
+                let snap = await db.collection("chuyenBay").get();
+
+                if (snap.empty) {
+                    const oldSnap = await db.collection("ChuyenBay").get();
+
+                    if (!oldSnap.empty) {
+                        FLIGHT_COLLECTION = "ChuyenBay";
+                        snap = oldSnap;
+                    }
+                }
+
+                flights = snap.docs.map(doc => ({
+                    docId: doc.id,
+                    ...doc.data()
+                }));
+
+                renderFlights(flights);
+
+                const collectionLabel = document.getElementById("flightCollectionName");
+                if (collectionLabel) {
+                    collectionLabel.textContent = FLIGHT_COLLECTION;
+                }
+
+            } catch (error) {
+                console.error("Lỗi tải chuyến bay:", error);
+
+                document.getElementById("flightsTable").innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty">
+                            Không tải được danh sách vé: ${safe(error.message || error)}
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function renderFlights(data) {
+            const table = document.getElementById("flightsTable");
+
+            if (!data.length) {
+                table.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="empty">
+                            Chưa có chuyến bay nào.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            table.innerHTML = data.map(flight => `
+                <tr>
+                    <td><b>${safe(flight.id || flight.maVe || flight.docId)}</b></td>
+
+                    <td>${safe(flight.hang || flight.hangbay)}</td>
+
+                    <td>${safe(flight.diemdi || flight.diemDi)}</td>
+
+                    <td>${safe(flight.diemden || flight.diemDen)}</td>
+
+                    <td>${safe(flight.giobay || flight.gioBay)}</td>
+
+                    <td>
+                        <b>${Number(flight.gia || flight.giaVe || 0).toLocaleString("vi-VN")} ₫</b>
+                    </td>
+
+                    <td>
+                        <div class="flight-actions">
+                            <button class="btn edit-btn"
+                                onclick="editFlight('${safeJs(flight.docId)}')">
+                                ✏️ Sửa
+                            </button>
+
+                            <button class="btn flight-delete"
+                                onclick="deleteFlight('${safeJs(flight.docId)}')">
+                                🗑️ Xóa
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join("");
+        }
+
+        function filterFlights() {
+            const q = document
+                .getElementById("flightSearch")
+                .value
+                .toLowerCase()
+                .trim();
+
+            renderFlights(
+                flights.filter(flight => [
+                    flight.id,
+                    flight.maVe,
+                    flight.hang,
+                    flight.hangbay,
+                    flight.diemdi,
+                    flight.diemDi,
+                    flight.diemden,
+                    flight.diemDen,
+                    flight.giobay,
+                    flight.gioBay,
+                    flight.gia,
+                    flight.giaVe
+                ].some(value =>
+                    String(value ?? "").toLowerCase().includes(q)
+                ))
+            );
+        }
+
+        function openFlightModal(flight = null) {
+            document.getElementById("flightModal").classList.remove("hidden");
+
+            document.getElementById("flightModalTitle").textContent =
+                flight ? "✏️ Sửa vé" : "➕ Thêm vé";
+
+            document.getElementById("flightDocId").value =
+                flight ? flight.docId : "";
+
+            document.getElementById("flightId").value =
+                flight ? (flight.id || flight.maVe || "") : "";
+
+            document.getElementById("flightHang").value =
+                flight ? (flight.hang || flight.hangbay || "") : "";
+
+            document.getElementById("flightFrom").value =
+                flight ? (flight.diemdi || flight.diemDi || "") : "";
+
+            document.getElementById("flightTo").value =
+                flight ? (flight.diemden || flight.diemDen || "") : "";
+
+            document.getElementById("flightTime").value =
+                flight ? (flight.giobay || flight.gioBay || "") : "";
+
+            document.getElementById("flightPrice").value =
+                flight ? Number(flight.gia || flight.giaVe || 0) : "";
+        }
+
+        function closeFlightModal() {
+            document.getElementById("flightModal").classList.add("hidden");
+        }
+
+        function editFlight(docId) {
+            const flight = flights.find(item => item.docId === docId);
+
+            if (!flight) {
+                alert("Không tìm thấy vé này.");
+                return;
+            }
+
+            openFlightModal(flight);
+        }
+
+        async function saveFlight() {
+            const docId = document.getElementById("flightDocId").value.trim();
+
+            const id = document.getElementById("flightId").value.trim();
+            const hang = document.getElementById("flightHang").value.trim();
+            const diemdi = document.getElementById("flightFrom").value.trim();
+            const diemden = document.getElementById("flightTo").value.trim();
+            const giobay = document.getElementById("flightTime").value.trim();
+            const gia = Number(document.getElementById("flightPrice").value);
+
+            if (!id || !hang || !diemdi || !diemden || !giobay || !Number.isFinite(gia) || gia < 0) {
+                alert("Vui lòng nhập đầy đủ thông tin vé.");
+                return;
+            }
+
+            const data = {
+                id,
+                hang,
+                diemdi,
+                diemden,
+                giobay,
+                gia,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                if (docId) {
+                    await db.collection(FLIGHT_COLLECTION)
+                        .doc(docId)
+                        .update(data);
+
+                    alert("✅ Đã sửa vé thành công.");
+                } else {
+                    await db.collection(FLIGHT_COLLECTION).add({
+                        ...data,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    alert("✅ Đã thêm vé thành công.");
+                }
+
+                closeFlightModal();
+                await loadFlights();
+
+            } catch (error) {
+                console.error(error);
+                alert("❌ Không thể lưu vé:\n\n" + (error.message || error));
+            }
+        }
+
+        async function deleteFlight(docId) {
+            const flight = flights.find(item => item.docId === docId);
+
+            if (!flight) {
+                alert("Không tìm thấy vé này.");
+                return;
+            }
+
+            const name = `${flight.id || flight.docId}: ${flight.diemdi || ""} → ${flight.diemden || ""}`;
+
+            if (!confirm(`Bạn có chắc muốn xóa vé "${name}" không?`)) {
+                return;
+            }
+
+            try {
+                await db.collection(FLIGHT_COLLECTION)
+                    .doc(docId)
+                    .delete();
+
+                alert("🗑️ Đã xóa vé.");
+
+                await loadFlights();
+
+            } catch (error) {
+                console.error(error);
+                alert("❌ Không thể xóa vé:\n\n" + (error.message || error));
+            }
+        }
+
+        function safeJs(value) {
+            return String(value ?? "")
+                .replaceAll("\\", "\\\\")
+                .replaceAll("'", "\\'");
+        }
+
+        // =====================================================
+        // TÌM KIẾM ĐƠN
+        // =====================================================
+
+        function filterOrders() {
+
+            const q =
+                document
+                    .getElementById("orderSearch")
+                    .value
+                    .toLowerCase()
+                    .trim();
+
+
+            renderOrders(
+
+                orders.filter(order =>
+
+                    [
+
+                        order.maDatVe,
+                        order.hoten,
+                        order.email,
+                        order.diemdi,
+                        order.diemden,
+                        order.hangbay,
+                        order.giobay
+
+                    ].some(value =>
+
+                        String(value || "")
+                            .toLowerCase()
+                            .includes(q)
+
+                    )
+
+                )
+
+            );
+
+        }
+
+
+        // =====================================================
+        // TÌM KIẾM USER
+        // =====================================================
+
+        function filterUsers() {
+
+            const q =
+                document
+                    .getElementById("userSearch")
+                    .value
+                    .toLowerCase()
+                    .trim();
+
+
+            renderUsers(
+
+                users.filter(user =>
+
+                    [
+
+                        user.hoTen,
+                        user.hoten,
+                        user.email,
+                        user.uid,
+                        user.id
+
+                    ].some(value =>
+
+                        String(value || "")
+                            .toLowerCase()
+                            .includes(q)
+
+                    )
+
+                )
+
+            );
+
+        }
+
+
+        // =====================================================
+        // CHUYỂN TAB
+        // =====================================================
+
+        function openTab(id, button) {
+
+            document
+                .querySelectorAll("main section")
+                .forEach(section =>
+                    section.classList.add("hidden")
+                );
+
+
+            document
+                .getElementById(id)
+                .classList.remove("hidden");
+
+
+            document
+                .querySelectorAll(".side button")
+                .forEach(btn =>
+                    btn.classList.remove("active")
+                );
+
+
+            button.classList.add("active");
+
+        }
+
+
+        // =====================================================
+        // ĐĂNG XUẤT
+        // =====================================================
+
+        function logout() {
+
+            firebase.auth()
+                .signOut()
+                .then(() => {
+
+                    window.location.href =
+                        "dangnhap.html";
+
+                })
+                .catch(error => {
+
+                    alert(
+                        "❌ Lỗi đăng xuất: "
+                        + error.message
+                    );
+
+                });
+
+        }
+
+
+        // =====================================================
+        // CHỐNG HTML
+        // =====================================================
+
+        function safe(value) {
+
+            return String(value ?? "")
+
+                .replaceAll("&", "&amp;")
+
+                .replaceAll("<", "&lt;")
+
+                .replaceAll(">", "&gt;")
+
+                .replaceAll('"', "&quot;")
+
+                .replaceAll("'", "&#039;");
+
+        }
+
+    </script>
+
+</body>
+
+</html>
